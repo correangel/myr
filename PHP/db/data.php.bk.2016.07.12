@@ -1,0 +1,55 @@
+<?php
+	require_once 'db.php';
+	if(isset($_POST['id']))
+  {    	
+      cod_reparacion($_POST['id']);        
+  }
+  if(isset($_POST['costo']))
+  {     
+      costo($_POST['costo']);        
+  }
+  if(isset($_POST['password']))
+  {     
+      check_pass($_POST['password'],$_POST['user']);        
+  }
+  //Validar Password para modificar precios de OT
+  function check_pass($clave,$user){
+      $pass = sha1($clave);
+      if($pass != $user){
+        $conexion = new Conexion();
+        $consulta = $conexion->prepare('SELECT * FROM opsal_usuarios where clave="'.$pass.'"' );
+        $consulta->execute();        
+        $registros = $consulta->fetchAll();     
+        if($registros){          
+          echo 1;
+        }
+        else{          
+          echo 0;
+        }
+      }
+      else
+      {
+        echo 0;
+      }
+      //echo json_encode($registros);
+   } 
+  // Retornar de funcion AJAX
+   	function cod_reparacion($id){
+      $conexion = new Conexion();
+      $consulta = $conexion->prepare('SELECT * FROM myr_codigos_reparaciones where cod_reparacion="'.$id.'"' );        
+      $consulta->execute();        
+      $registros = $consulta->fetchAll();
+
+      echo json_encode($registros);
+   } 
+
+    function costo($id){
+      $conexion = new Conexion();
+      $consulta = $conexion->prepare('SELECT costo_reparacion FROM myr_codigos_reparaciones where cod_reparacion="'.$id.'"' );        
+      $consulta->execute();        
+      $registros = $consulta->fetchAll();
+      echo json_encode($registros);
+   } 
+
+
+?>

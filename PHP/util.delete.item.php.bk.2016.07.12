@@ -1,0 +1,15 @@
+<?php
+require_once 'db/tallerDetalle.php';
+$DeteItems = new TallerDetalle();
+
+
+if(isset($_GET['id']))
+{
+	$Items = $DeteItems->deleteOrdenItems($_GET['id']);
+}
+
+
+if($Items != 0)
+{
+	header('Location: '. 'util.orden.add.detalle.html?id='.$_GET['orden']);
+}

@@ -1,0 +1,47 @@
+<?php
+$bench_ultimo_evento = 'Big Bang';
+$bench_referencia = microtime(true);
+
+define('MODO_OCY','OCY');
+
+        define('MODO','OCY');
+        define('NOMBRE_CORTO','');
+        define('PROY_EMPRESA','');
+        define('PROY_NOMBRE','');
+        define('PROY_NOMBRE_CORTO','');
+        define('PROY_TELEFONO','22XX-XXXX');
+        define('PROY_TELEFONO_PRINCIPAL','22XX-XXXX');
+
+define('MEMCACHE_ACTIVO', class_exists('Memcached'));
+
+define('__BASE__',str_replace('//','/',dirname(__FILE__).'/'));
+define('__PHPDIR__',__BASE__.'PHP/');
+define('_B_FORZAR_SERVIDOR_IMG_NULO','true');
+
+define('db__host','localhost');
+define('db__usuario','root');
+define('db__clave','');
+define('db__db','');
+
+define('smtp_usuario','');
+define('smtp_clave','');
+
+define('PROY_MAIL_POSTMASTER_NOMBRE','');
+define('PROY_MAIL_POSTMASTER','');
+define('PROY_MAIL_REPLYTO_NOMBRE',PROY_MAIL_POSTMASTER_NOMBRE);
+define('PROY_MAIL_REPLYTO','');
+define('PROY_MAIL_BROADCAST_NOMBRE',PROY_MAIL_POSTMASTER_NOMBRE);
+define('PROY_MAIL_BROADCAST','');
+
+define('HEAD_KEYWORDS','');
+
+// Mostrar o no el pie - necesario para la pagina de compras
+$GLOBAL_MOSTRAR_PIE = true;
+$GLOBAL_TIDY_BREAKS = false;
+
+$HEAD_titulo = PROY_NOMBRE;
+$HEAD_descripcion = 'Container Yard - '.PROY_TELEFONO_PRINCIPAL;
+
+// Prefijo para tablas
+define('db_prefijo','sistema_');
+?>

@@ -1,0 +1,69 @@
+<?php
+
+echo '<form action="" method="GET">';
+echo '<p>Mes: <input type="date" name="fecha_consolidado" value="'.date('Y').'" /> <input type="submit" value="Actualizar" /></p>';
+
+$ano = db_codex(@$_GET['fecha_consolidado'] ?: date('Y'));
+
+if(isset($_GET['fecha_consolidado']))
+{
+	$fecha = date_create($_GET['fecha_consolidado']);
+	//$fecha =  '"'.$fecha.'"';
+	echo $mes = date_format($fecha,"m");
+
+	$NombreMes="";
+	
+	switch ($mes) {
+		case 01: $NombreMes="Enero"; break;
+		case 02: $NombreMes="Febrero";break;
+		case 03: $NombreMes="Marzo";break;
+		case 04: $NombreMes="Abril";break;
+		case 05: $NombreMes="Mayo";break;
+		case 06: $NombreMes="Junio";break;
+		case 07: $NombreMes="Julio";break;
+		case 08: $NombreMes="Agosto";break;
+		case 09: $NombreMes="Septiembre";break;
+		case 10: $NombreMes="Octubre";break;
+		case 11: $NombreMes="Noviembre";break;
+		case 12: $NombreMes="Diciembre";break;
+	}
+echo '<br /><hr /><br />';
+
+//var_dump($cMes);
+$c = 'select 
+	DATE_FORMAT(OT.f_salida, "%M") AS Mes,
+	DATE_FORMAT(OT.f_ingreso, "%d-%b-%Y") AS Ingreso,
+	DATE_FORMAT(OT.f_salida, "%d-%b-%Y") AS Salida,
+	DATEDIFF(OT.f_salida,OT.f_ingreso)as Dias,
+	OT.n_orden AS OTMYR,
+	CT.nombreLegal AS Cliente,
+	OT.Placa AS Placa,
+	OT.id_equipo AS Equipo,
+	MEC.nombre_mecanico AS Mecanico,
+	COD.sistema As Sistema,
+	CR.cod_reparacion as Codigo,
+	CR.descripcion_reparacion AS Descripcion,
+	(CR.costo_reparacion - OTD.valorInicial) AS Costo
+	
+	from myr_orden_taller as OT 
+	JOIN myr_cliente_taller as CT ON OT.id_cliente=CT.idCliente
+	JOIN myr_orden_taller_detalle as OTD ON OT.id_orden=OTD.idOrdenTaller
+	JOIN myr_mecanico AS MEC ON MEC.id_mecanico=OTD.idMecanico
+	JOIN myr_codigos_reparaciones AS CR ON CR.cod_reparacion=OTD.idCodTrabajo
+	JOIN myr_codigos AS COD on COD.id_codigo=CR.cod_sistema
+	WHERE DATE_FORMAT(OT.f_salida, "%m-%Y")=DATE_FORMAT("'.$_GET['fecha_consolidado'].'", "%m-%Y")
+	';
+
+$rIngresosMes = db_consultar($c);
+
+
+$titulo = 'MANO DE OBRA - '.$NombreMes.' '.strftime('%A %e de %B');
+echo '<h1>'. $titulo .'</h1>';
+echo '<div class="exportable" rel="'.$titulo.'">';
+echo db_ui_tabla($rIngresosMes,'class="tabla-estandar opsal_tabla_ancha opsal_tabla_borde_oscuro tabla-centrada"');
+echo '</div>';
+
+}
+
+
+?>

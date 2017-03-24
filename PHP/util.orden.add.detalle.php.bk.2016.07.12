@@ -1,0 +1,595 @@
+<?php
+require_once 'db/taller.php';
+require_once 'db/tallerDetalle.php';
+$id =  1;
+
+$NewOrdenTaller = new TallerDetalle();
+$OrdenTaller    = new Taller();
+$clientes       = $NewOrdenTaller->selectAllAgencias();
+$inventario     = $NewOrdenTaller->selectAllInvCatalogo();
+$mecanico       = $NewOrdenTaller->selectAllMecanico();
+$codReparacion  = $NewOrdenTaller->getCostoReparacion();
+$inventario     = $NewOrdenTaller->selectAllInventario();
+
+
+$data =     $OrdenTaller->selectId($_GET['id']);
+$detalle =  $NewOrdenTaller->selectAllId($_GET['id']);
+//var_dump($detalle);
+
+
+$orden          = $NewOrdenTaller->selectNewOrden($_GET['id']);
+$creada = 0;
+$log_user = $_SESSION['cache_datos_nombre_completo']['clave'];
+
+ //echo $persona->getNombre() . ' se ha guardado correctamente con el id: ' . $persona->getId();
+?>
+
+<script>
+
+$(document).ready(function() {
+    $(".credenciales").hide();
+
+    $("#btn_descuento").click(function(){
+        $(".credenciales").show();
+    });
+
+
+    //Validar Credenciales para descontar montos...................................
+    $("#btn-validar").click(function(){
+        var pass_user   = $("#log_user").val();             
+        var password    = $("#supervisor").val();        
+        
+            var data    = { password:password,user:pass_user};      
+            var sUrl    = 'PHP/db/data.php';
+            $.ajax({
+                url:sUrl,                
+                dataType: "html",
+                data:data,
+                type: "POST",
+                success: function(data)
+                {   
+                   
+                   if(data=="0")
+                   {
+                        alert("Credenciales Invalida");
+                   }
+                   else
+                   {
+                        $("#descuento").attr('readonly', true);
+                        $("#supervisor").attr('readonly', true);
+                        $("#btn_descuento").hide();
+                        $("#btn-validar").hide();
+                        
+                        
+                   }
+                                      
+                }                 
+            }); 
+    });
+    // *******************************************************************************
+
+
+
+
+    var costo = $("#cod_reparacion").attr("value"); 
+    var codigo1 = $("#cod_reparacion option:selected" ).text();
+    $("#costo").text(costo);
+    $("#codigo").val(codigo1);
+
+            
+        var data = { id:codigo1};
+            var sUrl = 'PHP/db/data.php';
+            $.ajax({
+                url:sUrl,                
+                dataType: "json",
+                data:data,
+                type: "POST",
+                success: function(data)
+                {   
+                    $("#descripcion_reparacion").empty();
+                    $.each(data, function(index) {
+                        $("#descripcion_reparacion").text(data[index].descripcion_reparacion);
+                        });
+                }                 
+            });
+    
+    $("#cod_reparacion").change(function()
+    { 
+        var costo = $(this).attr("value");
+        
+        var cod = $("#cod_reparacion option:selected" ).text();         
+        var data = { id:cod};
+        $("#costo").text(costo);
+        var codigo1 = $("#cod_reparacion option:selected" ).text();
+        $("#codigo").val(codigo1);
+                
+        var sUrl = 'PHP/db/data.php';
+            $.ajax({
+                url:sUrl,                
+                dataType: "json",
+                data:data,
+                type: "POST",
+                success: function(data)
+                {   
+                    $("#descripcion_reparacion").empty();
+                    $.each(data, function(index) {
+                        $("#descripcion_reparacion").text(data[index].descripcion_reparacion);
+                        });
+                }                 
+            });
+            
+        
+    });
+
+    $("#cod_detalle").change(function(){
+        var id = $(this).attr("value");
+        var data = { costo:id};       
+
+
+        var sUrl = 'PHP/db/data.php';
+            $.ajax({
+                url:sUrl,                
+                dataType: "json",
+                data:data,
+                type: "POST",
+                success: function(data)
+                {   
+                    $("#costo").val("");
+                    $.each(data, function(index) {
+                        $("#costo").val(data[index].costo_reparacion);
+                        });
+                    
+                }                 
+            }); 
+    });
+});
+</script>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Orden Add</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="font-awesome/css/font-awesome.min.css" />
+
+    
+    
+</head>
+<body>
+<style>
+#left{
+  float: right;
+  margin-right: 12px;
+  margin-top:-50px;
+  
+}
+</style>
+
+
+<!-- Detail Grids - START -->
+<div class="container">
+    <div class="row">
+        <div class="col-lg-11 col-md-11">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3>Catalogo / Orden / Detalle</h3>
+                    <a href='util.orden.taller.html' id="left" class='btn btn-success'>Regresar</a>
+                    <a href='util.orden.cerrar.html?id=<?php echo $orden[0]['id_orden']  ?>' class='btn btn-danger'>Cerrar Orden</a>
+                </div>
+                <div class="panel-body">
+                    <div id="grid1">
+                        <div class="container">
+
+                            <div class="row">
+                                
+                                
+                                <div class="col-xs-12 col-md-3 col-lg-3 pull-left">
+                                    <div class="panel panel-default height">
+                                        <div class="panel-heading">Detalle</div>
+                                            <div class="panel-body">
+                                            <table>
+                                                <tr>
+                                                    <td><strong>Nº Equipo - </strong></td>
+                                                    <td> <?php echo $orden[0]['id_equipo']; ?></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Nº Orden - </strong></td>
+                                                    <td><?php echo $orden[0]['n_orden']; ?></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Nº Placa - </strong></td>
+                                                    <td><?php echo $orden[0]['Placa']; ?></td>
+                                                </tr>
+                                            </table>
+
+                                            </div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-md-4 col-lg-4 pull-left">
+                                    <div class="panel panel-default height">
+                                        <div class="panel-heading">Detalle</div>
+                                            <div class="panel-body">                      
+                                                <strong>Cliente :</strong><br>
+                       
+                                                <?php
+                                                
+                                                foreach ($clientes as $value) {
+                                                    if($value['codigo_usuario'] == $orden[0]['id_cliente'])
+                                                    {
+                                                    ?>
+                                                        <?php echo $value['usuario'] ?>
+                                                    <?php
+                                                    }
+                                                }                                                
+                                                ?><br>
+                                                <strong>Kilometraje :</strong>
+                                                <?php echo $orden[0]['kilometraje']; ?>
+                                                
+                                            </div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-md-3 col-lg-3">
+                                    <div class="panel panel-default height">
+                                        <div class="panel-heading">Fechas Detalles</div>
+                                            <div class="panel-body">
+                                                <strong>Fecha Ingreso : </strong><br>
+                                                <?php echo $orden[0]['f_ingreso']; ?>
+                                                <br>
+                                                <strong>Fecha Salida :</strong>
+                                                <br>
+                                                <?php echo $orden[0]['f_salida']; ?>
+                                                
+                                                
+                                            </div>
+                                        </div>
+                                </div>
+
+                                
+                            </div>
+
+                        <?php
+                        if($creada ==0)
+                        {
+                        ?>
+                        <form action="util.orden.add.item.html" name="myForm" method="post" onsubmit="return validateForm()">
+                            <div class="row ">
+                                <div class="col-md-10">
+                                    <div class="panel panel-default border">
+                                        <div class="panel-heading">
+                                            <h3 class="text-center">
+                                            <strong>Orden de Trabajo # <?php echo $orden[0]['n_orden'] ?></strong></h3>
+                                        </div>
+                                        <div class="panel-body">
+                                <div class="table-responsive">
+                                 <table class="table table-condensed">
+                                
+                                
+                                <tbody>
+
+                                <tr>
+                                    <td class="text-left"><strong>Nombre Mecanico</strong></td>
+                                    <td class="text-left">
+                                        <input type="hidden" name="idOrdenTaller" value="<?php echo $orden[0]['id_orden']  ?>">
+                                        <select name="mecanico">
+                                        <?php
+                                        foreach ($mecanico as $value) {
+                                            ?>
+                                            <option value="<?php echo $value['id_mecanico'] ?>"><?php echo $value['nombre_mecanico'] ?></option>
+                                            <?php
+                                        }
+                                        ?>
+                                        </select>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="text-left"><strong>Codigo de Trabajo</strong></td>
+                                    <td class="text-left">
+                                        <select name="codReparacion" id="cod_reparacion">
+                                        <?php
+                                        foreach ($codReparacion as $value) {
+                                            ?>
+        <option value="<?php echo $value['costo_reparacion'] ?>"><?php echo $value['cod_reparacion'] ?></option>
+                                            <?php
+                                        }
+                                        ?>
+                                        </select>
+                                    </td>
+                                </tr>
+
+
+                                <tr>
+                                    <td class="text-left"><strong>Detalle Reparacion</strong></td>
+                                    <td class="text-left">
+                                        <span name="descripcion_reparacion" id="descripcion_reparacion"></span>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="text-left"><strong>Costo Reparacion</strong></td>
+                                    <td class="text-left">
+                                       <span name="costo" id="costo"></span>
+                                       <input type="hidden" name="codigo" id="codigo">
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    
+                                    <td class="text-left"><strong>Descuento</strong></td>
+                                    <td class="text-left">                                       
+                                       <input type="text" value="" class="credenciales" name="descuento" id="descuento">
+                                        <input type="hidden" value="<?php echo $log_user; ?>" name="log_user" id="log_user">
+                                    </td>
+                                    
+                                </tr>
+                                <tr>
+                                    <td class="text-left"><strong>Supervisor</strong></td>
+                                    <td class="text-left">
+                                        <input type="password" value="" class="credenciales" name="supervisor" id="supervisor">
+                                        <a href="#" id="btn-validar"  class="credenciales">Validar Acceso</a>        
+                                    </td>
+                                </tr>
+                                
+
+                                <tr>
+                                    <td class="text-left"><strong>Descripcion</strong></td>
+                                    <td class="text-left">
+                                        <textarea name="descripcion" rows="1" cols="">
+
+                                        </textarea>                                      
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-left"><strong># Orden Compra</strong></td>
+                                    <td class="text-left">
+                                       
+                                        <input type="text" size="70px" name="NordenCompra">
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="text-left"><strong>#CCF</strong></td>
+                                    <td class="text-left">
+                                       
+                                        <input type="text" size="70px" name="ccf">
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="text-left"><strong>Prov</strong></td>
+                                    <td class="text-left">
+                                       
+                                        <input type="text" size="70px" name="proveedor">
+                                    </td>
+                                </tr>
+
+                                <tr>                                    
+                                    <td class="text-left"></td>                               
+                                    <td class="text-left">
+                                        <input type="submit" id="agregar" class='btn btn-success' value="Agregar">
+                                        <a href="#" id="btn_descuento" class="btn btn-success">Aplicar Descuento</a>
+                                    </td>                               
+                                </tr>
+
+                                </tbody>
+                                </table>
+
+                                <table class="table table-condensed">
+                                <tbody>
+
+
+                                <tr>
+                                    <td class="text-left" colspan="2">
+                                        <span><b>Fecha Inicio</b></span><br>
+                                        <input type="date" name="fecha_i" value="<?php echo date("Y-m-d"); ?>">
+                                        
+                                    </td>
+                                    <td class="text-left">
+                                        <span><b>Hora Inicio</b></span><br>
+                                        <input type="time" name="hora_i" value="<?php echo date("h:i"); ?>">
+
+                                    </td>
+                                    <td class="text-left">
+                                        <span><b>Fecha Fin</b></span><br>
+                                        <input type="date" name="fecha_f" value="<?php echo date("Y-m-d"); ?>">
+                                    </td>
+                                    <td class="text-left">
+                                        <span><b>Hora Fin</b></span><br>
+                                        <input type="time" name="hora_f" value="<?php echo date("h:i"); ?>">
+                                    </td>
+
+                                </tr>
+
+                                
+                                    <tr bgcolor="grey">                                        
+                                        <td class="text-left"><strong>Mecanico</strong></td>
+                                        <td class="text-left"><strong>COD</strong></td>
+                                        <td class="text-left"><strong>Reparacion</strong></td>
+                                        <td class="text-left"><strong>Descripcion</strong></td>
+                                        <td class="text-left"><strong>O.C</strong></td>
+                                        <td class="text-left"><strong>CCF</strong></td>
+                                        <td class="text-left"><strong>Provee.</strong></td>
+                                        <td class="text-left"><strong>Descu</strong></td>
+                                        <td class="text-left"><strong>Valor</strong></td>
+                                        <td class="text-left"><strong></strong></td>
+                                    </tr>
+                                
+
+
+                                <?php                                  
+                                    $SubTotal = 0.00;                                    
+                                    settype($SubTotal, 'double');                                    
+                                    $a = 0.0;                                    
+                                    settype($a, 'double');                                    
+                                    $contador =1;                                    
+                                    $otro;
+                                    $abc = 0.00;
+                                    settype($abc, 'double');  
+                                    foreach ($detalle as $detalleOrden)
+                                    { 
+                                        $a = $detalleOrden['valor'];
+                                        $Subtotal[$contador] =  $a; 
+                                        $abc += $detalleOrden['valorInicial'];
+                                        $dateI = date_create($detalleOrden['F_I']); 
+                                        $dateF = date_create($detalleOrden['F_F']);         
+                                    ?>
+                                    
+                                        <tr>                                           
+                            <td><?php echo $detalleOrden['nombre_mecanico'] ?></td>
+                            <td><?php echo $detalleOrden['idCodTrabajo'] ?></td>
+                            <td class="text-left"><?php echo $detalleOrden['descripcion_reparacion'] ?></td>                                                        
+                            <td class="text-left"><?php echo $detalleOrden['descripcionTrabajo'] ?></td>
+                            <td class="text-left"><?php echo $detalleOrden['N_OrdenCompra'] ?></td>
+                            <td class="text-left"><?php echo $detalleOrden['N_CCF'] ?></td>
+                            <td class="text-left"><?php echo $detalleOrden['Proveedor'] ?></td>
+                            <td class="text-left">$<?php echo number_format($detalleOrden['valorInicial'],2) ?></td>
+                            <td class="text-left">$<?php echo number_format($detalleOrden['valor'],2) ?></td>
+                            <td class="text-left"><a href="util.delete.item.html?id=<?php echo $detalleOrden['idOrdenTallerDetalle'] ?>&orden=<?php echo $orden[0]['id_orden'] ?>">X</a></td>
+                                        </tr>
+                                    <?php
+                                    $contador++;                                    
+                                    }
+                                ?>
+
+
+
+
+                                    <tr>
+                                        <td class="highrow"></td>
+                                        <td class="highrow"></td>
+                                        <td class="highrow"></td>
+                                        <td class="highrow"></td>
+                                        <td class="highrow"></td>
+                                        <td colspan="2" class="highrow text-left"><strong>Sub total</strong></td>
+                                        <td class="highrow"></td>
+                                        
+                                        
+                                        <td class="highrow text-right">
+                                            $<?php
+                                            if(isset($Subtotal))
+                                            {
+                                            $cont=1;
+                                            $total = 0.0;
+
+                                            foreach ($Subtotal as $value) {
+
+                                                $total += (double)$value;
+                                                $cont++;
+                                            }
+                                            echo number_format($total,2);                                           
+                                            }
+                                            ?>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="highrow"></td>
+                                        <td class="highrow"></td>
+                                        <td class="highrow"></td>
+                                        <td class="highrow"></td>
+                                        <td class="highrow"></td>
+                                        
+                                        <td colspan="2" class="highrow text-left"><strong>Descuento</strong></td>
+                                        
+                                        <td class="highrow text-right">
+                                            $<?php                                          
+                                            echo number_format($abc,2);                                          
+                                            
+                                            ?>
+                                        </td>
+                                        <td class="highrow"> - </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="emptyrow"><i class="fa fa-barcode iconbig"></i></td>
+                                        
+                                        <td class="emptyrow"></td>
+                                        <td class="emptyrow"></td>
+                                        <td class="emptyrow"></td>
+                                        <td class="emptyrow"></td>
+                                        <td class="emptyrow"></td>                                        
+                                        <td class="emptyrow text-center"><strong>Total</strong></td>
+                                        <td class="emptyrow"></td>
+                                        <td class="emptyrow text-right">
+                                        $<?php
+                                            if(isset($Subtotal))
+                                            {
+                                            $cont=1;
+                                            $total = 0.0;
+                                            foreach ($Subtotal as $value) {
+
+                                                $total += (double)$value;
+                                                $cont++;
+                                            }
+                                            echo number_format($total-$abc,2); 
+                                            }
+                                            ?>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                </table>
+                                </div>
+                                </div>
+                                </div>
+                                </div>
+                            </div>
+                            </form>
+                        <?php
+                        }
+                        ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+.sui-cell {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+</style>
+<style>
+.height {
+    min-height: 150px;
+    border:1px solid grey;
+}
+.border{
+    border:1px solid grey;   
+}
+.icon {
+    font-size: 47px;
+    color: #5CB85C;
+}
+
+.iconbig {
+    font-size: 77px;
+    color: #5CB85C;
+}
+
+.table > tbody > tr > .emptyrow {
+    border-top: none;
+}
+
+.table > thead > tr > .emptyrow {
+    border-bottom: none;
+}
+
+.table > tbody > tr > .highrow {
+    border-top: 3px solid;
+}
+</style>
+
+
+
+</body>
+</html>
+
+<script>
+$(document).ready(function() {
+
+});
+</script>

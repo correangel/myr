@@ -1,0 +1,112 @@
+<?php
+ require_once 'db.php';
+ class Taller {
+   private $id;
+   private $nombre;
+   private $especialidad;
+  
+   const TABLA = 'myr_orden_taller';
+   const USUARIO = 'opsal_usuarios';
+   const CODIGOS = 'myr_codigos';
+   const CODIGOS_REPARACION = 'myr_codigos_reparaciones';
+   
+   public function __construct() {
+   }
+
+   public function guardar($nombre,$especialidad){
+      $conexion = new Conexion();
+         $consulta = $conexion->prepare('INSERT INTO ' . self::TABLA .' (nombre_mecanico, especialidad_mecanico) VALUES(:nombre, :descripcion)');
+         $consulta->bindParam(':nombre', $nombre);
+         $consulta->bindParam(':descripcion', $especialidad);
+         $consulta->execute();
+         $this->id = $conexion->lastInsertId();
+         $conexion = null;
+         return 1;
+   }
+   public function selectCodigos(){
+      $conexion = new Conexion();
+      $consulta = $conexion->prepare('SELECT * FROM ' . self::CODIGOS);        
+      $consulta->execute();        
+      $registros = $consulta->fetchAll();
+      return $registros; 
+   }
+   public function selectCodigoId($id){
+      $conexion = new Conexion();
+      $consulta = $conexion->prepare('SELECT * FROM ' . self::CODIGOS .' where id_codigo='.$id);
+      $consulta->execute();        
+      $registros = $consulta->fetchAll();
+      return $registros; 
+   }
+   public function updateCodigo($data){
+      
+      $conexion = new Conexion();
+      $consulta = $conexion->prepare('UPDATE ' . self::CODIGOS .' SET codigo = :codigo, sistema = :sistema, habilitado = :habilitado WHERE id_codigo = :id_codigo');
+      $consulta->bindParam(':codigo', $data['codigo']);
+      $consulta->bindParam(':sistema', $data['sistema']);
+      $consulta->bindParam(':habilitado', $data['habilitado']);      
+      $consulta->bindParam(':id_codigo', $data['id_codigo']);   
+      $consulta->execute();
+      return true;
+   }
+   public function insertCodigo($data){
+      $conexion = new Conexion();
+         $consulta = $conexion->prepare('INSERT INTO ' . self::CODIGOS .' (codigo, sistema,habilitado) VALUES(:codigo, :sistema, :habilitado)');
+         $consulta->bindParam(':codigo', $_POST['codigo']);
+         $consulta->bindParam(':sistema', $_POST['sistema']);
+         $consulta->bindParam(':habilitado', $_POST['habilitado']);
+         $consulta->execute();
+         $this->id = $conexion->lastInsertId();
+         $conexion = null;
+         return 1;
+   }
+   public function selectAll(){
+      $conexion = new Conexion();
+      $consulta = $conexion->prepare('SELECT * FROM ' . self::TABLA . ' JOIN '. self::USUARIO .' as U ON U.codigo_usuario='.self::TABLA.'.id_cliente order by estado="N" desc'  );        
+      $consulta->execute();        
+      $registros = $consulta->fetchAll();
+      return $registros; 
+   }
+
+
+   public function selectCodigoReparacion($id){
+      $conexion = new Conexion();
+      $consulta = $conexion->prepare('SELECT * FROM ' . self::CODIGOS_REPARACION . ' where cod_sistema ='.$id  );        
+      $consulta->execute();        
+      $registros = $consulta->fetchAll();
+      return $registros; 
+   }
+   
+   public function selectOrdenID($orden){
+      $conexion = new Conexion();
+      $consulta = $conexion->prepare('SELECT * FROM ' . self::TABLA . ' JOIN '. self::USUARIO .' as U ON U.codigo_usuario='.self::TABLA.'.id_cliente where n_orden='.$orden  );        
+      $consulta->execute();        
+      $registros = $consulta->fetchAll();
+      return $registros; 
+   }
+   public function selectOneOrdenById($id){
+      $conexion = new Conexion();
+      $consulta = $conexion->prepare('SELECT * FROM ' . self::TABLA . ' JOIN '. self::USUARIO .' as U ON U.codigo_usuario='.self::TABLA.'.id_cliente where '. self::TABLA .'.id_orden ='.$id);        
+      $consulta->execute();        
+      $registros = $consulta->fetchAll();
+      return $registros; 
+   }
+   public function selectId($id){
+      $conexion = new Conexion();
+      $consulta = $conexion->prepare('SELECT * FROM ' . self::TABLA . ' where id_orden = :id ');        
+      $consulta->bindParam(':id', $id);
+      $consulta->execute();        
+      $registros = $consulta->fetch();
+      return $registros; 
+   }
+   public function updateMecanico($id,$nombre,$especialidad){
+      
+      $conexion = new Conexion();
+      $consulta = $conexion->prepare('UPDATE ' . self::TABLA .' SET nombre_mecanico = :nombre, especialidad_mecanico = :especialidad WHERE id_mecanico = :id');
+      $consulta->bindParam(':id', $id);
+      $consulta->bindParam(':nombre', $nombre);
+      $consulta->bindParam(':especialidad', $especialidad);      
+      $consulta->execute();
+      return true;
+   }
+ }
+?>
